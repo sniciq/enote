@@ -57,11 +57,14 @@ public class NoteListAct extends ListActivity {
 		setListAdapter(dataAdapter);
 	}
 
+	/**
+	 * 长按右键菜单
+	 */
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		AdapterView.AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
 		MenuInflater menuInflater = getMenuInflater();
-		menuInflater.inflate(R.layout.popmenu, menu);
+		menuInflater.inflate(R.menu.popmenu, menu);
 
 		String title = data.get((int) info.id).get("title");
 		menu.setHeaderTitle(title);
@@ -70,7 +73,7 @@ public class NoteListAct extends ListActivity {
 		intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
 		menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0, new ComponentName(this, NoteListAct.class), null, intent, 0, null);
 	}
-
+	
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterView.AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
@@ -89,6 +92,35 @@ public class NoteListAct extends ListActivity {
 		default:
 			return super.onContextItemSelected(item);
 		}
+	}
+	
+	/**
+	 * 右上方选择菜单
+	 */
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.list_option_menu, menu);
+		Intent intent = new Intent(null, getIntent().getData());
+        intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
+        menu.addIntentOptions(Menu.CATEGORY_ALTERNATIVE, 0, 0,
+                new ComponentName(this, NoteListAct.class), null, intent, 0, null);
+		return super.onCreateOptionsMenu(menu);
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_add:
+			Intent intent = new Intent(NoteListAct.this, NoteEditorAct.class);
+			intent.setAction(Intent.ACTION_INSERT);
+			intent.setData(getIntent().getData());
+			startActivityForResult(intent, requestCode_editor);
+			break;
+		default:
+			break;
+		}
+		return super.onOptionsItemSelected(item);
 	}
 
 	@Override

@@ -15,4 +15,11 @@ public class ENoteColumn implements BaseColumns {
 	
 	public static final Uri Content_URI = Uri.parse(Scheme + ENote.AUTHORITY + Path_Note);
 	
+	
+	
+	public static final String column_name_title = "title";
+	public static final String column_name_context = "context";
+	public static final String column_name_create_date = "createDate";
+	public static final String column_name_modified_date = "modifiedDate";
+	public static final String DEFAULT_SORT_ORDER = "modifiedDate desc";
 }
