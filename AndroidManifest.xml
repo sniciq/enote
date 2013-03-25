@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="17" />
 
     <application
@@ -13,13 +13,6 @@
         android:icon="@drawable/enote"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        
-        <provider android:name="com.eddy.enote.note.ENoteProvider"
-            android:authorities="com.eddy.enote.note.ENote"
-            android:exported="false"
-            >
-           <grant-uri-permission android:pathPattern=".*" />
-        </provider>
         <activity
             android:name="com.eddy.enote.NoteListAct"
             android:label="@string/app_name" >

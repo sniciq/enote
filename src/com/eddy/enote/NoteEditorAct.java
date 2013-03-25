@@ -1,22 +1,23 @@
 package com.eddy.enote;
 
-import com.eddy.enote.note.ENoteColumn;
+import java.util.Date;
 
 import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.eddy.enote.note.ENoteEty;
+import com.eddy.enote.note.ENoteService;
+
 public class NoteEditorAct extends Activity {
 	
 	private EditText mText;
 	private int mState;
-	private Uri myUri;
+	private ENoteService enoteService;
 	
 	private static final int state_insert = 0;
 	private static final int state_edit = 1;
@@ -35,9 +36,8 @@ public class NoteEditorAct extends Activity {
 		}
 		else if(action.equals(Intent.ACTION_INSERT)) {
 			mState = state_insert;
-			myUri = getContentResolver().insert(intent.getData(), null);
-			System.out.println(myUri);
 		}
+		enoteService = new ENoteService(this);
 	}
 	
 	@Override
@@ -70,6 +70,8 @@ public class NoteEditorAct extends Activity {
 		case R.id.menu_save:
 			String text = mText.getText().toString();
 			doSave(null, text);
+			Intent output = new Intent();
+			setResult(RESULT_OK, output);
 			finish();
 			break;
 		case R.id.menu_delete:
@@ -81,17 +83,23 @@ public class NoteEditorAct extends Activity {
 	}
 	
 	private void doSave(String title, String text) {
-		ContentValues contentValues = new ContentValues();
+		if(text.trim().equals(""))
+			return;
+		
 		if(mState == state_insert) {
-			contentValues.put(ENoteColumn.column_name_title, text.substring(0, 4));
-			contentValues.put(ENoteColumn.column_name_create_date, System.currentTimeMillis());
-			contentValues.put(ENoteColumn.column_name_modified_date, System.currentTimeMillis());
-			contentValues.put(ENoteColumn.column_name_context, text);
-//			getContentResolver().update(myUri, contentValues, null, null);
+			ENoteEty ety = new ENoteEty();
+			if(text.length() > 4) {
+				ety.setTitle(text.substring(0, 4));
+			}
+			else {
+				ety.setTitle(text);
+			}
+			ety.setContext(text);
+			Date d = new Date();
+			ety.setCreateDate(d);
+			ety.setModifiedDate(d);
+			enoteService.insertOrUpdate(ety);
 		}
-		
-		
-		
 	}
 
 }

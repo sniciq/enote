@@ -17,9 +17,4 @@ public class ENoteColumn implements BaseColumns {
 	
 	
 	
-	public static final String column_name_title = "title";
-	public static final String column_name_context = "context";
-	public static final String column_name_create_date = "createDate";
-	public static final String column_name_modified_date = "modifiedDate";
-	public static final String DEFAULT_SORT_ORDER = "modifiedDate desc";
 }

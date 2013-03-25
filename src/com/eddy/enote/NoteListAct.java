@@ -1,13 +1,14 @@
 package com.eddy.enote;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.app.ListActivity;
 import android.content.ComponentName;
 import android.content.ContentUris;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.ContextMenu;
@@ -18,17 +19,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.SimpleAdapter;
+import android.widget.SimpleCursorAdapter;
+import android.widget.SimpleCursorAdapter.ViewBinder;
+import android.widget.TextView;
 
+import com.eddy.enote.note.ENote;
 import com.eddy.enote.note.ENoteColumn;
+import com.eddy.enote.note.ENoteService;
 
 public class NoteListAct extends ListActivity {
 
-	private static final String TAG = "NoteListAct";
 	private static final int requestCode_editor = 1;
 
-	ArrayList<Map<String, String>> data;
-	SimpleAdapter dataAdapter;
+	private SimpleCursorAdapter dataAdapter;
+	private ENoteService enoteService;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,24 +40,40 @@ public class NoteListAct extends ListActivity {
 
 		setDefaultKeyMode(DEFAULT_KEYS_SHORTCUT);
 		getListView().setOnCreateContextMenuListener(this);
-
+		
 		Intent intent = getIntent();
 		if (intent.getData() == null) {
 			intent.setData(ENoteColumn.Content_URI);
 		}
 
-		data = new ArrayList<Map<String, String>>();
-		Map<String, String> itemdata = new HashMap<String, String>();
-		itemdata.put("title", "ttt11111");
-		itemdata.put("createTime", "2013-01-01");
-		data.add(itemdata);
-
-		itemdata = new HashMap<String, String>();
-		itemdata.put("title", "ttt222");
-		itemdata.put("createTime", "2013-02-01");
-		data.add(itemdata);
-
-		dataAdapter = new SimpleAdapter(this, data, R.layout.enote_item, new String[] { "title", "createTime" }, new int[] { R.id.title, R.id.createTime });
+		enoteService = new ENoteService(this);
+		dataAdapter = new SimpleCursorAdapter(this, R.layout.enote_item, enoteService.getAllNoteCursor(), new String[] { ENote.column_name_title, ENote.column_name_create_date }, new int[] { R.id.title, R.id.createTime }, SimpleCursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER) {
+			@Override
+			public void setViewText(TextView v, String text) {
+				if(v.getId() == R.id.createTime) {
+					DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+					text = df.format(new Date(Long.parseLong(text)));
+				}
+				super.setViewText(v, text);
+			}
+		};
+//		dataAdapter.setViewBinder(new View);
+		
+		
+//		dataAdapter.setViewBinder(new ViewBinder() {
+//			@Override
+//			public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
+//				if (columnIndex == 3) {
+//	                long createDate = cursor.getLong(cursor.getColumnIndex(ENote.column_name_create_date));
+//	                TextView textView = (TextView) view;
+//	                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+//	                textView.setText(df.format(new Date(createDate)));
+//	                return true;
+//	         }
+//	         return false;
+//			}
+//		});
+		
 		setListAdapter(dataAdapter);
 	}
 
@@ -66,8 +86,8 @@ public class NoteListAct extends ListActivity {
 		MenuInflater menuInflater = getMenuInflater();
 		menuInflater.inflate(R.menu.popmenu, menu);
 
-		String title = data.get((int) info.id).get("title");
-		menu.setHeaderTitle(title);
+		Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
+		menu.setHeaderTitle(cursor.getString(cursor.getColumnIndex(ENote.column_name_title)));
 
 		Intent intent = new Intent(null, Uri.withAppendedPath(getIntent().getData(), Integer.toString((int) info.id)));
 		intent.addCategory(Intent.CATEGORY_ALTERNATIVE);
@@ -86,8 +106,10 @@ public class NoteListAct extends ListActivity {
 			startActivityForResult(intent, requestCode_editor);
 			return true;
 		case R.id.delete:
-			data.remove((int) info.id);
-			dataAdapter.notifyDataSetChanged();
+			Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
+			int id = cursor.getInt(cursor.getColumnIndex(ENote.column_name_id));
+			enoteService.deleteById(id);
+			dataAdapter.changeCursor(enoteService.getAllNoteCursor());
 			return true;
 		default:
 			return super.onContextItemSelected(item);
@@ -126,7 +148,9 @@ public class NoteListAct extends ListActivity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if(requestCode == requestCode_editor) {
-			
+			if(resultCode == RESULT_OK) {
+				dataAdapter.changeCursor(enoteService.getAllNoteCursor());
+			}
 		}
 		
 	}
