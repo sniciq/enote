@@ -130,17 +130,19 @@ public class NoteEditorAct extends Activity {
 				title = text;
 			}
 		}
-		ety.setTitle(title);
+		
 		ety.setContext(text);
 		Date d = new Date();
 		ety.setModifiedDate(d);
 		
 		if(mState == state_insert) {
+			ety.setTitle(title);
 			ety.setCreateDate(d);
 			enoteService.insertOrUpdate(ety);
 		}
 		else if(mState == state_edit) {
 			ety.setId(id);
+			ety.setTitle(editEty.getTitle());
 			ety.setCreateDate(editEty.getCreateDate());
 			enoteService.insertOrUpdate(ety);
 		}
