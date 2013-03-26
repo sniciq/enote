@@ -77,19 +77,6 @@ public class ENoteService {
 		try {
 			SQLiteDatabase db = dbHelper.getReadableDatabase();
 			Cursor c = db.rawQuery("select * from " + ENote.TableName +" order by " + ENote.column_name_modified_date + " desc;", null);
-			while(c.moveToNext()) {
-				int id = c.getInt(c.getColumnIndex(ENote.column_name_id));
-				String title = c.getString(c.getColumnIndex(ENote.column_name_title));
-				String context = c.getString(c.getColumnIndex(ENote.column_name_context));
-				long createDate = c.getLong(c.getColumnIndex(ENote.column_name_create_date));
-				long modifiedDate = c.getLong(c.getColumnIndex(ENote.column_name_modified_date));
-				ENoteEty ety = new ENoteEty();
-				ety.setId(id);
-				ety.setTitle(title);
-				ety.setContext(context);
-				ety.setModifiedDate(new Date(createDate));
-				ety.setCreateDate(new Date(modifiedDate));
-			}
 			return c;
 		}
 		catch(Exception e) {
