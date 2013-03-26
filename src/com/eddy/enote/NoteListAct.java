@@ -4,9 +4,12 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.ListActivity;
 import android.content.ComponentName;
-import android.content.ContentUris;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -19,8 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.EditText;
 import android.widget.SimpleCursorAdapter;
-import android.widget.SimpleCursorAdapter.ViewBinder;
 import android.widget.TextView;
 
 import com.eddy.enote.note.ENote;
@@ -57,23 +60,6 @@ public class NoteListAct extends ListActivity {
 				super.setViewText(v, text);
 			}
 		};
-//		dataAdapter.setViewBinder(new View);
-		
-		
-//		dataAdapter.setViewBinder(new ViewBinder() {
-//			@Override
-//			public boolean setViewValue(View view, Cursor cursor, int columnIndex) {
-//				if (columnIndex == 3) {
-//	                long createDate = cursor.getLong(cursor.getColumnIndex(ENote.column_name_create_date));
-//	                TextView textView = (TextView) view;
-//	                DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-//	                textView.setText(df.format(new Date(createDate)));
-//	                return true;
-//	         }
-//	         return false;
-//			}
-//		});
-		
 		setListAdapter(dataAdapter);
 	}
 
@@ -97,19 +83,58 @@ public class NoteListAct extends ListActivity {
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterView.AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
-		Uri noteUri = ContentUris.withAppendedId(getIntent().getData(), info.id);
+		Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
+		String title = cursor.getString(cursor.getColumnIndex(ENote.column_name_title));
+		final int id = cursor.getInt(cursor.getColumnIndex(ENote.column_name_id));
+		
 		switch (item.getItemId()) {
 		case R.id.open:
 			Intent intent = new Intent(NoteListAct.this, NoteEditorAct.class);
 			intent.setAction(Intent.ACTION_EDIT);
-			intent.setData(noteUri);
+			intent.putExtra(ENote.column_name_id, id);
 			startActivityForResult(intent, requestCode_editor);
 			return true;
 		case R.id.delete:
-			Cursor cursor = (Cursor) getListAdapter().getItem(info.position);
-			int id = cursor.getInt(cursor.getColumnIndex(ENote.column_name_id));
-			enoteService.deleteById(id);
-			dataAdapter.changeCursor(enoteService.getAllNoteCursor());
+			AlertDialog.Builder build = new Builder(this);
+			build.setTitle(getResources().getString(R.string.delete_confirm_title));
+			build.setMessage(getResources().getString(R.string.delete_confirm_msg) + " " + title + " ? ");
+			build.setPositiveButton(getResources().getString(R.string.confirm_ok), new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					enoteService.deleteById(id);
+					dataAdapter.changeCursor(enoteService.getAllNoteCursor());
+				}
+			});
+			build.setNegativeButton(getResources().getString(R.string.confirm_cancel), new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+			build.create().show();
+			return true;
+		case R.id.editTitle:
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle(getResources().getString(R.string.change_title_info));
+			final EditText input = new EditText(this);
+			input.setText(title);
+			builder.setView(input);
+			builder.setPositiveButton(getResources().getString(R.string.confirm_ok), new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+					enoteService.saveTitle(id, input.getText().toString());
+					dataAdapter.changeCursor(enoteService.getAllNoteCursor());
+				}
+			});
+			builder.setNegativeButton(getResources().getString(R.string.confirm_cancel), new OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					dialog.dismiss();
+				}
+			});
+			builder.create().show();
 			return true;
 		default:
 			return super.onContextItemSelected(item);

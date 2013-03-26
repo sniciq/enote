@@ -7,8 +7,14 @@
     
     <string name="menu_open">打开</string>
     <string name="menu_delete">删除</string>
+    <string name="menu_editTitle">编辑标题</string>
     <string name="menu_add">新增</string>
     <string name="menu_save">保存</string>
     <string name="title_create">新笔记</string>
-
+    
+    <string name="delete_confirm_title">提示</string>
+    <string name="delete_confirm_msg">确定删除</string>
+    <string name="confirm_ok">确认</string>
+    <string name="confirm_cancel">取消</string>
+	<string name="change_title_info">请输入标题</string>
 </resources>
